@@ -33,8 +33,8 @@ def stream_agent_response(endpoint: str, payload: dict, output_placeholder) -> s
         Full accumulated response text.
     """
     full_text = ""
-    error_occurred = False
 
+    output_placeholder.markdown("*Connecting to agent…*")
     try:
         with requests.post(
             f"{FLASK_URL}{endpoint}",
@@ -43,6 +43,7 @@ def stream_agent_response(endpoint: str, payload: dict, output_placeholder) -> s
             timeout=120,
         ) as response:
             response.raise_for_status()
+            output_placeholder.markdown("*Generating…*")
             for chunk in response.iter_content(chunk_size=None, decode_unicode=True):
                 if chunk:
                     full_text += chunk
@@ -50,20 +51,16 @@ def stream_agent_response(endpoint: str, payload: dict, output_placeholder) -> s
                     output_placeholder.markdown(full_text + " ▌")
 
     except requests.ConnectionError:
-        error_occurred = True
         full_text += (
             "\n\n⚠️ **Cannot connect to Flask backend.**\n\n"
             "Make sure the backend is running:\n"
             "```bash\npython run.py\n```"
         )
     except requests.Timeout:
-        error_occurred = True
         full_text += "\n\n⚠️ **Request timed out after 120 seconds.**"
     except requests.HTTPError as exc:
-        error_occurred = True
         full_text += f"\n\n⚠️ **HTTP error {exc.response.status_code}.**"
     except Exception as exc:
-        error_occurred = True
         logger.exception("Unexpected error streaming from %s", endpoint)
         full_text += f"\n\n⚠️ **Unexpected error:** {html.escape(str(exc))}"
 

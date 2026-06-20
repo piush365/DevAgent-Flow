@@ -10,10 +10,10 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
-from frontend.styles.mocha import inject_mocha_css, COLORS, AGENT_COLORS
+from frontend.styles.mocha import inject_mocha_css
 from frontend.components.sidebar import render_sidebar, add_recent_run
-from frontend.components.agent_header import render_agent_header
-from frontend.components.output_panel import stream_agent_response
+from frontend.components.agent_header import agent_header_html
+from frontend.components.output_panel import stream_agent_response, render_empty_state
 
 # ── Page Config ────────────────────────────────────────────────
 st.set_page_config(
@@ -34,19 +34,38 @@ if "agent_status" not in st.session_state:
     st.session_state.agent_status = "idle"
 if "last_output" not in st.session_state:
     st.session_state.last_output = ""
+if "active_agent" not in st.session_state:
+    st.session_state.active_agent = selected_agent
+
+# Reset status and output when the user switches to a different agent
+if selected_agent != st.session_state.active_agent:
+    st.session_state.agent_status = "idle"
+    st.session_state.last_output = ""
+    st.session_state.active_agent = selected_agent
+
+
+def _update_header(placeholder, agent_key: str, status: str) -> None:
+    """Replace header placeholder content with the given status."""
+    placeholder.markdown(agent_header_html(agent_key, status), unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════
 # CONTEXT AGENT
 # ═══════════════════════════════════════════════════════════════
 if selected_agent == "context":
-    render_agent_header("context", st.session_state.agent_status)
+    header_ph = st.empty()
+    _update_header(header_ph, "context", st.session_state.agent_status)
 
     with st.form("context_form", clear_on_submit=False):
         issue_url = st.text_input(
             "GitHub Issue URL",
             placeholder="https://github.com/owner/repo/issues/42",
             help="Paste a public GitHub issue URL",
+        )
+        include_comments = st.checkbox(
+            "Include issue comments",
+            value=True,
+            help="Fetch and analyse comments from the issue thread",
         )
         submitted = st.form_submit_button(
             "🔍 Analyze Issue",
@@ -55,25 +74,29 @@ if selected_agent == "context":
 
     if submitted and issue_url:
         st.session_state.agent_status = "running"
-        render_agent_header("context", "running")
+        _update_header(header_ph, "context", "running")
         output_placeholder = st.empty()
         result = stream_agent_response(
             "/api/context",
-            {"issue_url": issue_url},
+            {"issue_url": issue_url, "include_comments": include_comments},
             output_placeholder,
         )
         st.session_state.agent_status = "done"
+        _update_header(header_ph, "context", "done")
         st.session_state.last_output = result
         add_recent_run("context", issue_url)
     elif submitted:
         st.warning("Please enter a GitHub issue URL.")
+    elif not st.session_state.last_output:
+        render_empty_state("Context Agent")
 
 
 # ═══════════════════════════════════════════════════════════════
 # BOILERPLATE AGENT
 # ═══════════════════════════════════════════════════════════════
 elif selected_agent == "boilerplate":
-    render_agent_header("boilerplate", st.session_state.agent_status)
+    header_ph = st.empty()
+    _update_header(header_ph, "boilerplate", st.session_state.agent_status)
 
     with st.form("boilerplate_form", clear_on_submit=False):
         description = st.text_area(
@@ -84,8 +107,8 @@ elif selected_agent == "boilerplate":
         )
         style_ref = st.text_input(
             "Style Reference URL (optional)",
-            placeholder="https://github.com/owner/repo/blob/main/app/routes/auth.py",
-            help="URL of a code file to match its conventions",
+            placeholder="https://raw.githubusercontent.com/owner/repo/main/app/routes/auth.py",
+            help="Raw URL of a code file to match its conventions",
         )
         submitted = st.form_submit_button(
             "⚡ Generate Boilerplate",
@@ -94,7 +117,7 @@ elif selected_agent == "boilerplate":
 
     if submitted and description:
         st.session_state.agent_status = "running"
-        render_agent_header("boilerplate", "running")
+        _update_header(header_ph, "boilerplate", "running")
         output_placeholder = st.empty()
         payload = {"description": description}
         if style_ref:
@@ -105,17 +128,21 @@ elif selected_agent == "boilerplate":
             output_placeholder,
         )
         st.session_state.agent_status = "done"
+        _update_header(header_ph, "boilerplate", "done")
         st.session_state.last_output = result
         add_recent_run("boilerplate", description)
     elif submitted:
         st.warning("Please enter a description.")
+    elif not st.session_state.last_output:
+        render_empty_state("Boilerplate Agent")
 
 
 # ═══════════════════════════════════════════════════════════════
 # DOCS AGENT
 # ═══════════════════════════════════════════════════════════════
 elif selected_agent == "docs":
-    render_agent_header("docs", st.session_state.agent_status)
+    header_ph = st.empty()
+    _update_header(header_ph, "docs", st.session_state.agent_status)
 
     with st.form("docs_form", clear_on_submit=False):
         col1, col2 = st.columns([1, 1])
@@ -148,7 +175,7 @@ elif selected_agent == "docs":
 
     if submitted and question:
         st.session_state.agent_status = "running"
-        render_agent_header("docs", "running")
+        _update_header(header_ph, "docs", "running")
         output_placeholder = st.empty()
         payload = {"question": question}
         if library != "(custom URL)":
@@ -161,17 +188,21 @@ elif selected_agent == "docs":
             output_placeholder,
         )
         st.session_state.agent_status = "done"
+        _update_header(header_ph, "docs", "done")
         st.session_state.last_output = result
         add_recent_run("docs", f"{library}: {question}")
     elif submitted:
         st.warning("Please enter a question.")
+    elif not st.session_state.last_output:
+        render_empty_state("Docs Agent")
 
 
 # ═══════════════════════════════════════════════════════════════
 # PR DRAFT AGENT
 # ═══════════════════════════════════════════════════════════════
 elif selected_agent == "pr_draft":
-    render_agent_header("pr_draft", st.session_state.agent_status)
+    header_ph = st.empty()
+    _update_header(header_ph, "pr_draft", st.session_state.agent_status)
 
     with st.form("pr_draft_form", clear_on_submit=False):
         diff_text = st.text_area(
@@ -192,7 +223,7 @@ elif selected_agent == "pr_draft":
 
     if submitted and diff_text:
         st.session_state.agent_status = "running"
-        render_agent_header("pr_draft", "running")
+        _update_header(header_ph, "pr_draft", "running")
         output_placeholder = st.empty()
         payload = {"diff": diff_text}
         if issue_number:
@@ -206,10 +237,13 @@ elif selected_agent == "pr_draft":
             output_placeholder,
         )
         st.session_state.agent_status = "done"
+        _update_header(header_ph, "pr_draft", "done")
         st.session_state.last_output = result
         add_recent_run("pr_draft", f"PR draft ({len(diff_text)} chars)")
     elif submitted:
         st.warning("Please paste a git diff.")
+    elif not st.session_state.last_output:
+        render_empty_state("PR Draft Agent")
 
 
 # ── Copy Output Button ───────────────────────────────────────

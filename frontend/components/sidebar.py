@@ -50,21 +50,25 @@ def render_sidebar() -> str:
         label_to_key = {v: k for k, v in AGENT_LABELS.items()}
         selected_key = label_to_key.get(selected_label, "context")
 
-        # ── Color indicator dots ───────────────────────────────
+        # ── Color indicator dots (aria-labelled for screen readers) ──
         dots_html = ""
         for key in agent_keys:
             color = AGENT_COLORS[key]
+            label_text = AGENT_LABELS[key]
             is_active = key == selected_key
             opacity = "1" if is_active else "0.4"
             size = "10px" if is_active else "6px"
+            aria_label = f"{label_text} — {'active' if is_active else 'inactive'}"
             dots_html += (
-                f"<span style='display:inline-block; width:{size}; height:{size}; "
+                f"<span role='listitem' aria-label='{aria_label}' "
+                f"style='display:inline-block; width:{size}; height:{size}; "
                 f"border-radius:50%; background-color:{color}; margin:0 4px; "
                 f"opacity:{opacity}; transition: all 0.3s ease;'></span>"
             )
 
         st.markdown(
-            f"<div style='text-align:center; margin: 0.5rem 0 1.5rem 0;'>{dots_html}</div>",
+            f"<div role='list' aria-label='Agent indicators' "
+            f"style='text-align:center; margin: 0.5rem 0 1.5rem 0;'>{dots_html}</div>",
             unsafe_allow_html=True,
         )
 
@@ -84,7 +88,7 @@ def render_sidebar() -> str:
 
         runs = st.session_state.recent_runs
         if runs:
-            for run in runs[-3:]:  # Show last 3
+            for run in reversed(runs[-3:]):  # Show last 3, most-recent first
                 color = AGENT_COLORS.get(run["agent"], COLORS["overlay0"])
                 st.markdown(
                     f"<div class='recent-run' style='border-left-color: {color};'>"
