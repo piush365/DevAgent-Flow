@@ -43,7 +43,7 @@ class BoilerplateAgent(BaseAgent):
         # ── Step 1: Fetch style reference if provided ──────────────────
         if style_ref:
             logger.info("BoilerplateAgent: fetching style reference %s", style_ref)
-            yield f"📄 Fetching style reference…\n\n"
+            yield "📄 Fetching style reference…\n\n"
             try:
                 style_content = self.fetcher.fetch(style_ref)
                 yield "✅ Style reference loaded — matching its conventions\n\n"

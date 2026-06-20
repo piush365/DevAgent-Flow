@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install dev dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run linter (ruff)
+        run: ruff check app/ tests/
+
+      - name: Run tests with coverage
+        env:
+          GROQ_API_KEY: test-key-for-ci
+          GEMINI_API_KEY: test-key-for-ci
+          OPENROUTER_API_KEY: test-key-for-ci
+          GITHUB_TOKEN: test-key-for-ci
+          FLASK_DEBUG: "false"
+          LOG_LEVEL: "WARNING"
+        run: |
+          pytest tests/ \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-fail-under=80 \
+            -q
+
+  lint-format:
+    name: Format check (black)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install black
+      - run: black --check app/ tests/ run.py

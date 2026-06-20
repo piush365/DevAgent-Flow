@@ -4,7 +4,6 @@ LLMClient.stream() and all external services (GitHub, DocFetcher) are
 mocked so no real API calls are made.
 """
 
-import pytest
 
 from app.agents.context_agent import ContextAgent
 from app.agents.boilerplate_agent import BoilerplateAgent

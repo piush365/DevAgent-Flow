@@ -5,7 +5,6 @@ calls are made. These tests verify HTTP contract: status codes,
 content-type, and that the right agent is called with the right args.
 """
 
-import pytest
 
 
 def _stream_body(response) -> str:
