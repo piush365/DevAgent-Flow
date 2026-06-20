@@ -10,7 +10,7 @@ import os
 import re
 import time
 
-from github import Github, GithubException
+from github import Auth, Github, GithubException
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class GitHubClient:
     def __init__(self) -> None:
         token = os.environ.get("GITHUB_TOKEN")
         self._gh = (
-            Github(token, timeout=_GITHUB_TIMEOUT)
+            Github(auth=Auth.Token(token), timeout=_GITHUB_TIMEOUT)
             if token
             else Github(timeout=_GITHUB_TIMEOUT)
         )
