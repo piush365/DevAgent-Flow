@@ -1,32 +1,43 @@
+# =========================
 # Python
+# =========================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 *.egg-info/
-dist/
 build/
+dist/
 .eggs/
 
-# Environment
+# Virtual environments
 .env
 venv/
 .venv/
 
-# IDE
+# =========================
+# IDEs
+# =========================
 .vscode/
 .idea/
 *.swp
 *.swo
 
+# =========================
 # OS
+# =========================
 .DS_Store
 Thumbs.db
 
-# Project docs (keep but don't track changes)
+# =========================
+# Logs
+# =========================
 *.log
 
-/api.md
-/architechture.md
-/design.md
-/prd.md
+# =========================
+# Project docs (don't track)
+# =========================
+api.md
+architecture.md
+design.md
+prd.md
