@@ -25,3 +25,8 @@ Thumbs.db
 
 # Project docs (keep but don't track changes)
 *.log
+
+api.md
+architechture.md
+design.md
+prd.md
