@@ -80,9 +80,7 @@ class DiffParser:
         }
 
     @staticmethod
-    def _build_summary(
-        files: list[dict], total_added: int, total_removed: int
-    ) -> str:
+    def _build_summary(files: list[dict], total_added: int, total_removed: int) -> str:
         """Build a human-readable summary string."""
         header = (
             f"{len(files)} file(s) changed, "

@@ -6,13 +6,13 @@ content-type, and that the right agent is called with the right args.
 """
 
 
-
 def _stream_body(response) -> str:
     """Read a streaming response into a string."""
     return response.get_data(as_text=True)
 
 
 # ── Health endpoint ───────────────────────────────────────────────────
+
 
 class TestHealthEndpoint:
     def test_returns_200(self, client):
@@ -37,6 +37,7 @@ class TestHealthEndpoint:
 
 
 # ── Context endpoint ──────────────────────────────────────────────────
+
 
 class TestContextRoute:
     def test_missing_issue_url_returns_error_stream(self, client):
@@ -95,6 +96,7 @@ class TestContextRoute:
 
 # ── Boilerplate endpoint ──────────────────────────────────────────────
 
+
 class TestBoilerplateRoute:
     def test_missing_description_returns_error(self, client):
         r = client.post("/api/boilerplate", json={})
@@ -136,6 +138,7 @@ class TestBoilerplateRoute:
 
 # ── Docs endpoint ─────────────────────────────────────────────────────
 
+
 class TestDocsRoute:
     def test_missing_question_returns_error(self, client):
         r = client.post("/api/docs", json={"library": "Flask"})
@@ -172,6 +175,7 @@ class TestDocsRoute:
 
 
 # ── PR Draft endpoint ─────────────────────────────────────────────────
+
 
 class TestPRDraftRoute:
     def test_missing_diff_returns_error(self, client):

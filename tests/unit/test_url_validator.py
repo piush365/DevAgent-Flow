@@ -19,7 +19,9 @@ class TestSchemeValidation:
         mocker.patch(
             "socket.getaddrinfo", return_value=_make_addr_info("93.184.216.34")
         )
-        assert validate_fetch_url("https://example.com/page") == "https://example.com/page"
+        assert (
+            validate_fetch_url("https://example.com/page") == "https://example.com/page"
+        )
 
     def test_http_allowed(self, mocker):
         mocker.patch(
@@ -48,7 +50,9 @@ class TestSchemeValidation:
 class TestPrivateAddressBlocking:
     """All RFC 1918 and reserved ranges must be blocked."""
 
-    def _assert_blocked(self, mocker, ip: str, url: str = "https://evil.internal/") -> None:
+    def _assert_blocked(
+        self, mocker, ip: str, url: str = "https://evil.internal/"
+    ) -> None:
         mocker.patch("socket.getaddrinfo", return_value=_make_addr_info(ip))
         with pytest.raises(ValueError, match="private or reserved"):
             validate_fetch_url(url)
@@ -79,14 +83,18 @@ class TestPrivateAddressBlocking:
         self._assert_blocked(mocker, "169.254.169.254")
 
     def test_aws_metadata_endpoint_blocked(self, mocker):
-        self._assert_blocked(mocker, "169.254.169.254", "http://169.254.169.254/latest/meta-data/")
+        self._assert_blocked(
+            mocker, "169.254.169.254", "http://169.254.169.254/latest/meta-data/"
+        )
 
     def test_zero_network_blocked(self, mocker):
         self._assert_blocked(mocker, "0.0.0.0")
 
 
 class TestPublicAddressAllowed:
-    def _assert_allowed(self, mocker, ip: str, url: str = "https://public.example.com/") -> None:
+    def _assert_allowed(
+        self, mocker, ip: str, url: str = "https://public.example.com/"
+    ) -> None:
         mocker.patch("socket.getaddrinfo", return_value=_make_addr_info(ip))
         result = validate_fetch_url(url)
         assert result == url

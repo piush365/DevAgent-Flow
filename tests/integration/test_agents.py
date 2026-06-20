@@ -4,7 +4,6 @@ LLMClient.stream() and all external services (GitHub, DocFetcher) are
 mocked so no real API calls are made.
 """
 
-
 from app.agents.context_agent import ContextAgent
 from app.agents.boilerplate_agent import BoilerplateAgent
 from app.agents.docs_agent import DocsAgent
@@ -16,6 +15,7 @@ def _run(generator) -> str:
 
 
 # ── ContextAgent ──────────────────────────────────────────────────────
+
 
 class TestContextAgent:
     def test_invalid_url_yields_error(self):
@@ -71,17 +71,20 @@ class TestContextAgent:
         mock_fetch = mocker.patch(
             "app.agents.context_agent.GitHubClient.fetch_issue",
             return_value={
-                "title": "Issue", "body": "", "labels": [],
-                "comments": [], "owner": "o", "repo": "r", "number": 1,
+                "title": "Issue",
+                "body": "",
+                "labels": [],
+                "comments": [],
+                "owner": "o",
+                "repo": "r",
+                "number": 1,
             },
         )
         mocker.patch(
             "app.agents.context_agent.GitHubClient.fetch_file_tree",
             return_value=[],
         )
-        mocker.patch(
-            "app.utils.llm_client.LLMClient.stream", return_value=iter(["ok"])
-        )
+        mocker.patch("app.utils.llm_client.LLMClient.stream", return_value=iter(["ok"]))
         agent = ContextAgent()
         _run(agent.run("https://github.com/o/r/issues/1", include_comments=False))
         _, kwargs = mock_fetch.call_args
@@ -94,7 +97,11 @@ class TestContextAgent:
         paths = [p for p, _ in ranked]
         # auth.py should rank higher than parser.py for "auth" issue
         assert "src/auth.py" in paths
-        assert paths.index("src/auth.py") < paths.index("src/parser.py") if "src/parser.py" in paths else True
+        assert (
+            paths.index("src/auth.py") < paths.index("src/parser.py")
+            if "src/parser.py" in paths
+            else True
+        )
 
     def test_rank_files_empty_tree_returns_empty(self):
         agent = ContextAgent()
@@ -108,6 +115,7 @@ class TestContextAgent:
 
 
 # ── BoilerplateAgent ──────────────────────────────────────────────────
+
 
 class TestBoilerplateAgent:
     def test_basic_generation(self, mocker):
@@ -129,9 +137,7 @@ class TestBoilerplateAgent:
             return_value=iter(["fallback code"]),
         )
         agent = BoilerplateAgent()
-        result = _run(
-            agent.run("A function", style_ref="https://raw.example.com/f.py")
-        )
+        result = _run(agent.run("A function", style_ref="https://raw.example.com/f.py"))
         # Should warn but still produce output
         assert "⚠️" in result
         assert "fallback code" in result
@@ -146,13 +152,12 @@ class TestBoilerplateAgent:
             return_value=iter(["code"]),
         )
         agent = BoilerplateAgent()
-        result = _run(
-            agent.run("func", style_ref="http://10.0.0.1/secret")
-        )
+        result = _run(agent.run("func", style_ref="http://10.0.0.1/secret"))
         assert "Invalid" in result or "⚠️" in result
 
 
 # ── DocsAgent ─────────────────────────────────────────────────────────
+
 
 class TestDocsAgent:
     def test_unknown_library_no_custom_url_yields_error(self):
@@ -211,6 +216,7 @@ class TestDocsAgent:
 
 # ── PRDraftAgent ──────────────────────────────────────────────────────
 
+
 class TestPRDraftAgent:
     VALID_DIFF = (
         "diff --git a/src/foo.py b/src/foo.py\n"
@@ -248,9 +254,7 @@ class TestPRDraftAgent:
             captured_prompt["p"] = prompt
             yield "ok"
 
-        mocker.patch(
-            "app.utils.llm_client.LLMClient.stream", side_effect=mock_stream
-        )
+        mocker.patch("app.utils.llm_client.LLMClient.stream", side_effect=mock_stream)
         agent = PRDraftAgent()
         _run(agent.run(self.VALID_DIFF, issue_number=101))
         assert "101" in captured_prompt.get("p", "")

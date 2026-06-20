@@ -104,13 +104,15 @@ class GitHubClient:
                     repo_name,
                 )
 
-            paths = [
-                item.path for item in tree.tree if item.type == "blob"
-            ][:_FILE_TREE_LIMIT]
+            paths = [item.path for item in tree.tree if item.type == "blob"][
+                :_FILE_TREE_LIMIT
+            ]
 
         except GithubException:
             # Fallback: BFS traversal using get_contents()
-            logger.info("Recursive tree failed for %s/%s; falling back to BFS", owner, repo_name)
+            logger.info(
+                "Recursive tree failed for %s/%s; falling back to BFS", owner, repo_name
+            )
             paths = self._fetch_tree_bfs(repo)
 
         logger.info("Fetched %d file paths for %s/%s", len(paths), owner, repo_name)

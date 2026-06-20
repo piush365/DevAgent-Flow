@@ -101,9 +101,7 @@ class DocsAgent(BaseAgent):
         yield "---\n\n"
         yield from self._stream_llm(prompt)
 
-    def _resolve_docs_url(
-        self, library: str, custom_url: str | None
-    ) -> str | None:
+    def _resolve_docs_url(self, library: str, custom_url: str | None) -> str | None:
         """Return the docs URL to use, preferring custom_url if provided."""
         if custom_url:
             return custom_url.strip()

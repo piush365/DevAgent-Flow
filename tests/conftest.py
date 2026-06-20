@@ -44,6 +44,7 @@ def mock_llm_stream(mocker):
     Patch LLMClient.stream() to return a predictable sequence of chunks
     without making any real API calls.
     """
+
     def _stream(prompt, system=""):
         yield "Test "
         yield "LLM "

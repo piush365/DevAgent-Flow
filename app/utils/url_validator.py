@@ -13,23 +13,23 @@ logger = logging.getLogger(__name__)
 
 # RFC 1918 private ranges + reserved ranges that must be blocked
 _BLOCKED_NETWORKS = [
-    ipaddress.ip_network("0.0.0.0/8"),        # "This" network
-    ipaddress.ip_network("10.0.0.0/8"),        # RFC 1918 private
-    ipaddress.ip_network("100.64.0.0/10"),     # Shared address space
-    ipaddress.ip_network("127.0.0.0/8"),       # Loopback
-    ipaddress.ip_network("169.254.0.0/16"),    # Link-local (AWS metadata, etc.)
-    ipaddress.ip_network("172.16.0.0/12"),     # RFC 1918 private
-    ipaddress.ip_network("192.0.0.0/24"),      # IETF protocol assignments
-    ipaddress.ip_network("192.168.0.0/16"),    # RFC 1918 private
-    ipaddress.ip_network("198.18.0.0/15"),     # Benchmarking
-    ipaddress.ip_network("198.51.100.0/24"),   # TEST-NET-2
-    ipaddress.ip_network("203.0.113.0/24"),    # TEST-NET-3
-    ipaddress.ip_network("240.0.0.0/4"),       # Reserved
-    ipaddress.ip_network("255.255.255.255/32"),# Broadcast
+    ipaddress.ip_network("0.0.0.0/8"),  # "This" network
+    ipaddress.ip_network("10.0.0.0/8"),  # RFC 1918 private
+    ipaddress.ip_network("100.64.0.0/10"),  # Shared address space
+    ipaddress.ip_network("127.0.0.0/8"),  # Loopback
+    ipaddress.ip_network("169.254.0.0/16"),  # Link-local (AWS metadata, etc.)
+    ipaddress.ip_network("172.16.0.0/12"),  # RFC 1918 private
+    ipaddress.ip_network("192.0.0.0/24"),  # IETF protocol assignments
+    ipaddress.ip_network("192.168.0.0/16"),  # RFC 1918 private
+    ipaddress.ip_network("198.18.0.0/15"),  # Benchmarking
+    ipaddress.ip_network("198.51.100.0/24"),  # TEST-NET-2
+    ipaddress.ip_network("203.0.113.0/24"),  # TEST-NET-3
+    ipaddress.ip_network("240.0.0.0/4"),  # Reserved
+    ipaddress.ip_network("255.255.255.255/32"),  # Broadcast
     # IPv6
-    ipaddress.ip_network("::1/128"),           # IPv6 loopback
-    ipaddress.ip_network("fc00::/7"),          # IPv6 unique local
-    ipaddress.ip_network("fe80::/10"),         # IPv6 link-local
+    ipaddress.ip_network("::1/128"),  # IPv6 loopback
+    ipaddress.ip_network("fc00::/7"),  # IPv6 unique local
+    ipaddress.ip_network("fe80::/10"),  # IPv6 link-local
 ]
 
 _ALLOWED_SCHEMES = {"http", "https"}
@@ -75,9 +75,7 @@ def validate_fetch_url(url: str) -> str:
     try:
         addr_infos = socket.getaddrinfo(hostname, None)
     except socket.gaierror as exc:
-        raise ValueError(
-            f"Could not resolve hostname {hostname!r}: {exc}"
-        ) from exc
+        raise ValueError(f"Could not resolve hostname {hostname!r}: {exc}") from exc
 
     if not addr_infos:
         raise ValueError(f"Hostname {hostname!r} resolved to no addresses.")

@@ -7,13 +7,15 @@ import pytest
 
 from app.utils.doc_fetcher import DocFetcher, MAX_CONTENT_LENGTH, _cache
 
-
 # ── Helpers ───────────────────────────────────────────────────────────
+
 
 class _FakeResponse:
     """Minimal stand-in for an httpx.Response object."""
 
-    def __init__(self, text: str, content_type: str = "text/plain", status_code: int = 200):
+    def __init__(
+        self, text: str, content_type: str = "text/plain", status_code: int = 200
+    ):
         self.text = text
         self.status_code = status_code
         self.headers = {"content-type": content_type}
@@ -22,12 +24,11 @@ class _FakeResponse:
         if self.status_code >= 400:
             # Mimic httpx.HTTPStatusError
             import httpx
+
             raise httpx.HTTPStatusError(
                 f"HTTP {self.status_code}",
                 request=None,
-                response=type(
-                    "_R", (), {"status_code": self.status_code}
-                )(),
+                response=type("_R", (), {"status_code": self.status_code})(),
             )
 
 
@@ -54,6 +55,7 @@ TEST_URL = "https://docs.example.com/page"
 
 
 # ── Successful fetches ────────────────────────────────────────────────
+
 
 class TestSuccessfulFetch:
     def test_plain_text_returned(self, fetcher, mocker, patched_validate):
@@ -91,7 +93,9 @@ class TestSuccessfulFetch:
         assert "Skip me" not in result
         assert "Also skip" not in result
 
-    def test_plain_text_truncated_at_max_length(self, fetcher, mocker, patched_validate):
+    def test_plain_text_truncated_at_max_length(
+        self, fetcher, mocker, patched_validate
+    ):
         long_text = "x" * (MAX_CONTENT_LENGTH + 500)
         mocker.patch(
             "httpx.get",
@@ -108,10 +112,13 @@ class TestSuccessfulFetch:
             return_value=_FakeResponse(long_html, "text/html"),
         )
         result = fetcher.fetch(TEST_URL)
-        assert len(result) <= MAX_CONTENT_LENGTH + len("\n\n[... content truncated ...]")
+        assert len(result) <= MAX_CONTENT_LENGTH + len(
+            "\n\n[... content truncated ...]"
+        )
 
 
 # ── TTL Cache ─────────────────────────────────────────────────────────
+
 
 class TestCaching:
     def test_second_call_uses_cache(self, fetcher, mocker, patched_validate):
@@ -141,6 +148,7 @@ class TestCaching:
 
 # ── Error handling ────────────────────────────────────────────────────
 
+
 class TestErrorHandling:
     def test_http_404_raises_exception(self, fetcher, mocker, patched_validate):
         mocker.patch(
@@ -152,18 +160,23 @@ class TestErrorHandling:
 
     def test_connection_error_raises_exception(self, fetcher, mocker, patched_validate):
         import httpx
+
         mocker.patch("httpx.get", side_effect=httpx.RequestError("DNS failed"))
         with pytest.raises(Exception, match="Could not reach"):
             fetcher.fetch(TEST_URL)
 
-    def test_timeout_raises_descriptive_exception(self, fetcher, mocker, patched_validate):
+    def test_timeout_raises_descriptive_exception(
+        self, fetcher, mocker, patched_validate
+    ):
         import httpx
+
         mocker.patch("httpx.get", side_effect=httpx.TimeoutException("timed out"))
         with pytest.raises(Exception, match="Timeout"):
             fetcher.fetch(TEST_URL)
 
 
 # ── SSRF guard is invoked ─────────────────────────────────────────────
+
 
 class TestSSRFGuardCalled:
     def test_validate_called_before_any_http_request(self, fetcher, mocker):

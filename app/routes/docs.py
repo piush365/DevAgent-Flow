@@ -22,7 +22,7 @@ def docs_route():
     question = data.get("question", "").strip()
     if not question:
         return error_stream_response(
-            '⚠️ question is required.\n',
+            "⚠️ question is required.\n",
             'Send: {"library": "Flask", "question": "How do I use blueprints?"}\n',
         )
 
@@ -31,7 +31,7 @@ def docs_route():
 
     if not library and not custom_url:
         return error_stream_response(
-            '⚠️ Either library or custom_url is required.\n',
+            "⚠️ Either library or custom_url is required.\n",
             'Send: {"library": "Flask", "question": "..."}\n'
             '   or {"custom_url": "https://...", "question": "..."}\n',
         )

@@ -22,8 +22,8 @@ def pr_draft_route():
     diff_text = data.get("diff", "").strip()
     if not diff_text:
         return error_stream_response(
-            '⚠️ diff is required.\n',
-            'Paste the output of: git diff HEAD\n',
+            "⚠️ diff is required.\n",
+            "Paste the output of: git diff HEAD\n",
         )
 
     issue_number: int | None = None

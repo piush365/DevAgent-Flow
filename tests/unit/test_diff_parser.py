@@ -12,6 +12,7 @@ def parser():
 
 # ── Empty / null input ────────────────────────────────────────────────
 
+
 class TestEmptyInput:
     def test_empty_string(self, parser):
         result = parser.parse("")
@@ -118,7 +119,7 @@ class TestMultipleFiles:
 
     def test_totals_aggregated(self, parser):
         result = parser.parse(MULTI_FILE_DIFF)
-        assert result["total_added"] == 5   # 1 + 4
+        assert result["total_added"] == 5  # 1 + 4
         assert result["total_removed"] == 1
 
     def test_per_file_counts_correct(self, parser):
@@ -132,6 +133,7 @@ class TestMultipleFiles:
 
 
 # ── Summary format ────────────────────────────────────────────────────
+
 
 class TestSummaryFormat:
     def test_summary_mentions_file_count(self, parser):
@@ -156,6 +158,7 @@ class TestSummaryFormat:
 
 
 # ── Edge cases ────────────────────────────────────────────────────────
+
 
 class TestEdgeCases:
     def test_additions_only(self, parser):

@@ -39,15 +39,11 @@ class TestParseIssueUrl:
         assert number == 6471
 
     def test_large_issue_number(self, client):
-        _, _, number = client._parse_issue_url(
-            "https://github.com/o/r/issues/999999"
-        )
+        _, _, number = client._parse_issue_url("https://github.com/o/r/issues/999999")
         assert number == 999999
 
     def test_issue_number_is_int(self, client):
-        _, _, number = client._parse_issue_url(
-            "https://github.com/o/r/issues/7"
-        )
+        _, _, number = client._parse_issue_url("https://github.com/o/r/issues/7")
         assert isinstance(number, int)
 
     def test_hyphenated_repo_name(self, client):
@@ -69,15 +65,11 @@ class TestParseIssueUrl:
 
     def test_pr_url_raises(self, client):
         with pytest.raises(ValueError, match="Invalid GitHub issue URL"):
-            client._parse_issue_url(
-                "https://github.com/owner/repo/pull/42"
-            )
+            client._parse_issue_url("https://github.com/owner/repo/pull/42")
 
     def test_missing_issue_number_raises(self, client):
         with pytest.raises(ValueError):
-            client._parse_issue_url(
-                "https://github.com/owner/repo/issues/"
-            )
+            client._parse_issue_url("https://github.com/owner/repo/issues/")
 
     def test_non_github_url_raises(self, client):
         with pytest.raises(ValueError):

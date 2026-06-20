@@ -54,7 +54,5 @@ class BaseAgent(ABC):
         try:
             yield from self.llm.stream(prompt, system=self._system_prompt())
         except Exception as exc:
-            logger.exception(
-                "%s encountered an LLM error", self.__class__.__name__
-            )
+            logger.exception("%s encountered an LLM error", self.__class__.__name__)
             yield f"\n⚠️ LLM error: {exc}"

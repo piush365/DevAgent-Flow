@@ -42,6 +42,7 @@ def error_stream_response(*messages: str, status: int = 400) -> Response:
     Returns:
         A Flask Response streaming the error messages.
     """
+
     def _generate() -> Generator[str, None, None]:
         for message in messages:
             yield message

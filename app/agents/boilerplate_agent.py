@@ -60,9 +60,7 @@ class BoilerplateAgent(BaseAgent):
         yield "---\n\n"
         yield from self._stream_llm(prompt)
 
-    def _build_prompt(
-        self, description: str, style_content: str | None = None
-    ) -> str:
+    def _build_prompt(self, description: str, style_content: str | None = None) -> str:
         """Build the LLM prompt for boilerplate generation."""
         style_section = ""
         if style_content:

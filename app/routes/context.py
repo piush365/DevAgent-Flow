@@ -22,7 +22,7 @@ def context_route():
     issue_url = data.get("issue_url", "").strip()
     if not issue_url:
         return error_stream_response(
-            '⚠️ issue_url is required.\n',
+            "⚠️ issue_url is required.\n",
             'Send: {"issue_url": "https://github.com/owner/repo/issues/N"}\n',
         )
 

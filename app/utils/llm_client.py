@@ -38,6 +38,7 @@ class LLMClient:
         self._groq_client = None
         if self.groq_key:
             from groq import Groq
+
             self._groq_client = Groq(api_key=self.groq_key)
             logger.debug("Groq client initialised")
 
@@ -45,6 +46,7 @@ class LLMClient:
         # per-request; creating GenerativeModel is lightweight.
         if self.gemini_key:
             import google.generativeai as genai
+
             genai.configure(api_key=self.gemini_key)
             logger.debug("Gemini configured")
 
@@ -179,10 +181,14 @@ class LLMClient:
     ) -> Generator[str, None, None]:
         """Yield a user-visible notice then let execution fall through."""
         err = str(exc).lower()
-        is_rate_limit = "429" in str(exc) or "rate" in err or "limit" in err or "quota" in err
+        is_rate_limit = (
+            "429" in str(exc) or "rate" in err or "limit" in err or "quota" in err
+        )
 
         if is_rate_limit:
-            logger.warning("%s rate limit hit; falling back to %s", provider, next_provider)
+            logger.warning(
+                "%s rate limit hit; falling back to %s", provider, next_provider
+            )
             yield f"⚡ {provider} rate limit — switching to {next_provider}…\n\n"
         else:
             logger.error("%s error: %s", provider, exc)

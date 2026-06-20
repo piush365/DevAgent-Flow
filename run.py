@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from app import create_app
-from app.config import Config
+from app import create_app  # noqa: E402
+from app.config import Config  # noqa: E402
 
 # Validate required configuration before starting the server.
 # Raises EnvironmentError with clear instructions if GROQ_API_KEY is missing.
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     print(f"\n🚀  DevFlow Agent backend → http://localhost:{Config.FLASK_PORT}")
     print("    Frontend command:  streamlit run frontend/streamlit_app.py\n")
     app.run(
-        host="127.0.0.1",   # localhost only; use 0.0.0.0 only inside Docker
+        host="127.0.0.1",  # localhost only; use 0.0.0.0 only inside Docker
         port=Config.FLASK_PORT,
         debug=Config.FLASK_DEBUG,
     )

@@ -22,7 +22,7 @@ def boilerplate_route():
     description = data.get("description", "").strip()
     if not description:
         return error_stream_response(
-            '⚠️ description is required.\n',
+            "⚠️ description is required.\n",
             'Send: {"description": "Flask route for user registration"}\n',
         )
 

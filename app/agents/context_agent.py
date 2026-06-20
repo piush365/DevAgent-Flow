@@ -48,7 +48,9 @@ class ContextAgent(BaseAgent):
         # ── Step 1: Fetch issue data ───────────────────────────────────
         logger.info("ContextAgent: fetching issue %s", issue_url)
         try:
-            issue = self.github.fetch_issue(issue_url, include_comments=include_comments)
+            issue = self.github.fetch_issue(
+                issue_url, include_comments=include_comments
+            )
         except ValueError as exc:
             yield f"⚠️ {exc}\n"
             return
@@ -63,13 +65,9 @@ class ContextAgent(BaseAgent):
 
         if show_file_tree:
             try:
-                file_tree = self.github.fetch_file_tree(
-                    issue["owner"], issue["repo"]
-                )
+                file_tree = self.github.fetch_file_tree(issue["owner"], issue["repo"])
                 yield f"📂 Repository has {len(file_tree)} files\n\n"
-                relevant_files = self._rank_files_by_keyword(
-                    issue["body"], file_tree
-                )
+                relevant_files = self._rank_files_by_keyword(issue["body"], file_tree)
                 if relevant_files:
                     yield "🔍 Top relevant files identified:\n"
                     for path, score in relevant_files:
@@ -103,9 +101,7 @@ class ContextAgent(BaseAgent):
         scored: list[tuple[str, int]] = []
 
         for path in file_tree[:_MAX_FILES_SCORED]:
-            path_parts = set(
-                re.findall(r"[a-zA-Z_][a-zA-Z0-9_]{2,}", path.lower())
-            )
+            path_parts = set(re.findall(r"[a-zA-Z_][a-zA-Z0-9_]{2,}", path.lower()))
             overlap = len(keywords & path_parts)
             if overlap > 0:
                 scored.append((path, overlap))

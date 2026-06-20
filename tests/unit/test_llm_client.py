@@ -54,9 +54,7 @@ class TestFallbackChain:
         assert "Gemini response" in result
 
     def test_groq_and_gemini_fail_falls_to_openrouter(self, client, mocker):
-        mocker.patch.object(
-            client, "_stream_groq", side_effect=Exception("429")
-        )
+        mocker.patch.object(client, "_stream_groq", side_effect=Exception("429"))
         mocker.patch.object(client, "_groq_client", new=object())
         mocker.patch.object(
             client, "_stream_gemini", side_effect=Exception("quota exceeded")
@@ -71,16 +69,10 @@ class TestFallbackChain:
         assert "OR response" in result
 
     def test_all_providers_fail_yields_error(self, client, mocker):
-        mocker.patch.object(
-            client, "_stream_groq", side_effect=Exception("429")
-        )
+        mocker.patch.object(client, "_stream_groq", side_effect=Exception("429"))
         mocker.patch.object(client, "_groq_client", new=object())
-        mocker.patch.object(
-            client, "_stream_gemini", side_effect=Exception("429")
-        )
-        mocker.patch.object(
-            client, "_stream_openrouter", side_effect=Exception("500")
-        )
+        mocker.patch.object(client, "_stream_gemini", side_effect=Exception("429"))
+        mocker.patch.object(client, "_stream_openrouter", side_effect=Exception("500"))
         client.gemini_key = "fake-key"
         client.openrouter_key = "fake-key"
 
@@ -88,14 +80,10 @@ class TestFallbackChain:
         assert "unavailable" in result.lower() or "error" in result.lower()
 
     def test_no_gemini_key_skips_gemini(self, client, mocker):
-        mocker.patch.object(
-            client, "_stream_groq", side_effect=Exception("429")
-        )
+        mocker.patch.object(client, "_stream_groq", side_effect=Exception("429"))
         mocker.patch.object(client, "_groq_client", new=object())
         gemini_mock = mocker.patch.object(client, "_stream_gemini")
-        mocker.patch.object(
-            client, "_stream_openrouter", return_value=iter(["OR"])
-        )
+        mocker.patch.object(client, "_stream_openrouter", return_value=iter(["OR"]))
         client.gemini_key = None
         client.openrouter_key = "fake-key"
 
@@ -105,13 +93,9 @@ class TestFallbackChain:
 
 class TestProviderErrorMessages:
     def test_rate_limit_notice_mentions_next_provider(self, client, mocker):
-        mocker.patch.object(
-            client, "_stream_groq", side_effect=Exception("429")
-        )
+        mocker.patch.object(client, "_stream_groq", side_effect=Exception("429"))
         mocker.patch.object(client, "_groq_client", new=object())
-        mocker.patch.object(
-            client, "_stream_gemini", return_value=iter(["ok"])
-        )
+        mocker.patch.object(client, "_stream_gemini", return_value=iter(["ok"]))
         client.gemini_key = "key"
 
         result = _collect(client.stream("prompt"))
