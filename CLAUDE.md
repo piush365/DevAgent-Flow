@@ -50,20 +50,25 @@ Health check: `GET http://localhost:5000/api/health`
 
 **Application factory** — `app/__init__.py:create_app()` registers four blueprints.
 
+**BaseAgent** (`app/agents/base_agent.py`) — abstract base class all agents inherit. Provides `_stream_llm(prompt)` helper with error handling. Subclasses implement `run()`, `_build_prompt()`, and `_system_prompt()`.
+
 **Agents** (`app/agents/`) are the core logic layer. Each is a class with a `run(*args)` method that is a **generator** — it `yield`s string chunks for streaming. The pattern in every agent:
 1. Validate and preprocess inputs
 2. Fetch external data (GitHub, docs, parse diff)
 3. Build a prompt string
-4. `yield from self.llm.stream(prompt, system=...)`
+4. `yield from self._stream_llm(prompt)`
 
-**Routes** (`app/routes/`) are thin Flask blueprints that instantiate an agent and wrap its generator in `stream_with_context()`, returning `Response(mimetype="text/plain")` with `X-Accel-Buffering: no`. All endpoints are `POST /api/<name>`.
+**Routes** (`app/routes/`) are thin Flask blueprints that instantiate an agent and call `agent_stream_response()` from `stream_utils.py`. All endpoints are `POST /api/<name>`. Error responses use `error_stream_response()`.
 
 **LLM fallback chain** (`app/utils/llm_client.py`) — `LLMClient.stream()` tries Groq (`llama-3.1-8b-instant`) → Gemini Flash → OpenRouter (`llama-3.1-8b-instruct:free`). On a 429/rate-limit from any provider it yields a notice and falls through to the next.
 
 **Utilities:**
-- `github_client.py` — `GitHubClient` wraps PyGitHub to fetch issues, comments, and recursive file trees
+- `github_client.py` — `GitHubClient` wraps PyGitHub to fetch issues, comments, and recursive file trees. TTL cache for repo objects (5 min).
 - `diff_parser.py` — `DiffParser.parse()` converts raw unified diff text to `{files_changed, total_added, total_removed, summary}`
-- `doc_fetcher.py` — fetches and extracts text from documentation URLs
+- `doc_fetcher.py` — fetches and extracts text from documentation URLs. TTL cache for content (10 min).
+- `url_validator.py` — `validate_fetch_url()` blocks SSRF by resolving hostnames and rejecting private/reserved IP ranges before any HTTP fetch
+- `stream_utils.py` — `agent_stream_response()` and `error_stream_response()` used by all routes
+- `logging_config.py` — `setup_logging()` called once at startup
 
 ### Frontend (`frontend/`)
 
@@ -75,17 +80,18 @@ The UI uses the Catppuccin Mocha color palette injected via `frontend/styles/moc
 
 ### Adding a new agent
 
-1. Create `app/agents/<name>_agent.py` — class with `run()` as a generator
-2. Create `app/routes/<name>.py` — blueprint that wraps the agent in `stream_with_context()`
+1. Create `app/agents/<name>_agent.py` — class inheriting `BaseAgent` with `run()`, `_build_prompt()`, `_system_prompt()`
+2. Create `app/routes/<name>.py` — blueprint using `agent_stream_response()` / `error_stream_response()`
 3. Register the blueprint in `app/__init__.py`
 4. Add the UI section in `frontend/streamlit_app.py`
+5. Add unit tests in `tests/unit/` and integration tests in `tests/integration/`
 
 ## API surface
 
 | Method | Path | Body keys | Notes |
 |--------|------|-----------|-------|
 | GET | `/api/health` | — | Returns provider availability |
-| POST | `/api/context` | `issue_url` | Full GitHub issue URL |
+| POST | `/api/context` | `issue_url`, `include_comments?`, `show_file_tree?` | Full GitHub issue URL |
 | POST | `/api/boilerplate` | `description`, `style_ref?` | `style_ref` is a raw code URL |
 | POST | `/api/docs` | `library?`, `question`, `custom_url?` | Built-in libs listed in `docs_agent.py:DOCS_URLS` |
 | POST | `/api/pr-draft` | `diff`, `issue_number?` | Raw `git diff` output |
