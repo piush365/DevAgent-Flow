@@ -1,0 +1,18 @@
+# DevFlow Agent — Development & Testing Dependencies
+# Install with: pip install -r requirements-dev.txt
+# (Also install runtime deps first: pip install -r requirements.txt)
+
+# ── Testing ─────────────────────────────────────────────────
+pytest>=7.4,<9.0
+pytest-cov>=4.1,<6.0
+pytest-mock>=3.11,<4.0
+responses>=0.24,<1.0
+
+# ── Linting & Formatting ────────────────────────────────────
+ruff>=0.1,<1.0
+black>=23.0,<25.0
+
+# ── Type Checking ───────────────────────────────────────────
+mypy>=1.5,<2.0
+types-requests>=2.31,<3.0
+types-beautifulsoup4>=4.12,<5.0
