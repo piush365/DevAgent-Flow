@@ -1,11 +1,16 @@
 """
 DevFlow Agent — Docs Route
-POST /api/docs — Streams documentation-grounded answers
+POST /api/docs — Streams documentation-grounded answers.
 """
 
-from flask import Blueprint, request, Response, stream_with_context
-from app.agents.docs_agent import DocsAgent
+import logging
 
+from flask import Blueprint, request
+
+from app.agents.docs_agent import DocsAgent
+from app.utils.stream_utils import agent_stream_response, error_stream_response
+
+logger = logging.getLogger(__name__)
 docs_bp = Blueprint("docs", __name__)
 
 
@@ -13,33 +18,24 @@ docs_bp = Blueprint("docs", __name__)
 def docs_route():
     """Answer a library question using official documentation."""
     data = request.get_json(silent=True) or {}
-    library = data.get("library", "").strip()
-    question = data.get("question", "").strip()
-    custom_url = data.get("custom_url", "").strip() or None
 
+    question = data.get("question", "").strip()
     if not question:
-        def error_stream():
-            yield "⚠️ question is required.\n"
-            yield 'Send: {"library": "Flask", "question": "How do I use blueprints?"}\n'
-        return Response(
-            stream_with_context(error_stream()),
-            mimetype="text/plain",
-            headers={"X-Accel-Buffering": "no"},
+        return error_stream_response(
+            '⚠️ question is required.\n',
+            'Send: {"library": "Flask", "question": "How do I use blueprints?"}\n',
         )
+
+    library: str = data.get("library", "").strip()
+    custom_url: str | None = data.get("custom_url", "").strip() or None
 
     if not library and not custom_url:
-        def error_stream():
-            yield "⚠️ Either library or custom_url is required.\n"
-            yield 'Send: {"library": "Flask", "question": "..."} or {"custom_url": "https://...", "question": "..."}\n'
-        return Response(
-            stream_with_context(error_stream()),
-            mimetype="text/plain",
-            headers={"X-Accel-Buffering": "no"},
+        return error_stream_response(
+            '⚠️ Either library or custom_url is required.\n',
+            'Send: {"library": "Flask", "question": "..."}\n'
+            '   or {"custom_url": "https://...", "question": "..."}\n',
         )
 
+    logger.info("Docs Agent request: library=%r question=%r", library, question[:60])
     agent = DocsAgent()
-    return Response(
-        stream_with_context(agent.run(library, question, custom_url=custom_url)),
-        mimetype="text/plain",
-        headers={"X-Accel-Buffering": "no"},
-    )
+    return agent_stream_response(agent.run(library, question, custom_url=custom_url))
